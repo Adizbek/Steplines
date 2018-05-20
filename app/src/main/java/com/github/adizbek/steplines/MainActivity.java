@@ -3,6 +3,8 @@ package com.github.adizbek.steplines;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import com.github.adizbek.steplinesview.SteplinesView;
+
 public class MainActivity extends AppCompatActivity {
 
     @Override

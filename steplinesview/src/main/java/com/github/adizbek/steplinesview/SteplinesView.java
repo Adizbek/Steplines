@@ -1,4 +1,4 @@
-package com.github.adizbek.steplines;
+package com.github.adizbek.steplinesview;
 
 import android.content.Context;
 import android.content.res.Resources;

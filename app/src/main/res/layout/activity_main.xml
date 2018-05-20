@@ -7,7 +7,7 @@
     tools:context=".MainActivity">
 
 
-    <com.github.adizbek.steplines.SteplinesView
+    <com.github.adizbek.steplinesview.SteplinesView
         android:id="@+id/steplines"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
