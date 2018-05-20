@@ -115,6 +115,8 @@ public class SteplinesView extends View {
         for (int i = 0; i < items.size(); i++) {
             drawRegion(canvas, items.get(i));
         }
+
+        setMinimumHeight(y);
     }
 
     private void drawSideLine(Canvas canvas, int start, int end, Paint paint) {
