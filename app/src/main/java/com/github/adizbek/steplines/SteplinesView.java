@@ -11,7 +11,9 @@ import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.View;
 
-public class Steplines extends View {
+import java.util.ArrayList;
+
+public class SteplinesView extends View {
 
     private Paint mPaint;
     private int mTextPadding;
@@ -20,40 +22,45 @@ public class Steplines extends View {
     private int mRadius;
     private boolean init = false;
 
-    private int x, y = 0;
+    private int x, y = 0, startY = 0;
     private Paint mSidePaint;
     private Paint mSidePoint;
 
-    private String[] labels = {"11:00", "12:00", "15:00", "21:00", "23:00"};
-    private String[] items = {"Toshkent", "Buxoro", "Andijon", "Fargona", "Qarshi"};
+    private ArrayList<Item> items = new ArrayList<>();
+    private ArrayList<SidebarLayer> sideLayers = new ArrayList<>();
     private Paint mSidePaint2;
 
-    private boolean hasLabels = true;
+    private boolean hasLabels = false;
     private int mLabelOffsetX;
 
-    public Steplines(Context context) {
+    public SteplinesView(Context context) {
         super(context);
+
+        init();
     }
 
-    public Steplines(Context context, @Nullable AttributeSet attrs) {
+    public SteplinesView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+
+        init();
     }
 
-    public Steplines(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public SteplinesView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+
+        init();
     }
 
 
     private void init() {
-        if (init) return;
-
         mTextPadding = convertDpToPx(10);
         mTextOffsetX = convertDpToPx(25);
         mOffsetY = convertDpToPx(45);
         mRadius = convertDpToPx(8);
 
         x = convertDpToPx(30);
-        y = convertDpToPx(20);
+        startY = convertDpToPx(20);
+        y = startY;
 
         if (hasLabels) {
             mLabelOffsetX = convertDpToPx(80);
@@ -81,6 +88,15 @@ public class Steplines extends View {
         mSidePoint.setDither(true);
         mSidePoint.setColor(Color.parseColor("#FFFFFF"));
 
+        if (isInEditMode()) {
+            items.add(new Item("A"));
+            items.add(new Item("B"));
+            items.add(new Item("C"));
+            items.add(new Item("D"));
+            items.add(new Item("E"));
+            items.add(new Item("F"));
+        }
+
         init = true;
     }
 
@@ -88,13 +104,16 @@ public class Steplines extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        init();
+        y = startY;
 
         drawSideLine(canvas);
-        drawSideLine(canvas, 2, 3, mSidePaint2);
 
-        for (int i = items.length - 1; i >= 0; i--) {
-            drawRegion(canvas, items[i], labels[i]);
+        for (SidebarLayer l : sideLayers) {
+            drawSideLine(canvas, l.start, l.end, l.paint);
+        }
+
+        for (int i = 0; i < items.size(); i++) {
+            drawRegion(canvas, items.get(i));
         }
     }
 
@@ -111,41 +130,64 @@ public class Steplines extends View {
     }
 
     private void drawSideLine(Canvas canvas) {
-        drawSideLine(canvas, 1, items.length, mSidePaint);
+        drawSideLine(canvas, 1, items.size(), mSidePaint);
     }
 
-    private void drawRegion(Canvas canvas, String city, String label) {
+    private void drawRegion(Canvas canvas, Item item) {
         canvas.drawCircle(x, y, mRadius, mSidePoint);
-        canvas.drawText(city, x + mTextOffsetX, y + mTextPadding, mPaint);
+        canvas.drawText(item.name, x + mTextOffsetX, y + mTextPadding, mPaint);
 
-        if (hasLabels)
-            canvas.drawText(label, x - mLabelOffsetX, y + mTextPadding, mPaint);
+        if (hasLabels && item.label != null)
+            canvas.drawText(item.label, x - mLabelOffsetX, y + mTextPadding, mPaint);
 
         y += mOffsetY;
     }
 
-    public static float convertPixelsToDp(float px) {
-        DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
-        float dp = px / (metrics.densityDpi / 160f);
-        return Math.round(dp);
+    public void hasLabel(boolean has) {
+        hasLabels = has;
     }
-
-    public static float convertDpToPixel(float dp) {
-        DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
-        float px = dp * (metrics.densityDpi / 160f);
-        return Math.round(px);
-    }
-//http://stackoverflow.com/questions/4605527/converting-pixels-to-dp
-//The above method results accurate method compared to below methods
-//http://stackoverflow.com/questions/8309354/formula-px-to-dp-dp-to-px-android
-
 
     private int convertDpToPx(int dp) {
         return Math.round(dp * (getResources().getDisplayMetrics().xdpi / DisplayMetrics.DENSITY_DEFAULT));
 
     }
 
-    private int convertPxToDp(int px) {
-        return Math.round(px / (Resources.getSystem().getDisplayMetrics().xdpi / DisplayMetrics.DENSITY_DEFAULT));
+    public void addItem(Item item) {
+        items.add(item);
+    }
+
+    public void addLayer(SidebarLayer layer) {
+        sideLayers.add(layer);
+    }
+
+    public static class Item {
+        public String label, name;
+
+        public Item(String label, String name) {
+            this.label = label;
+            this.name = name;
+        }
+
+        public Item(String name) {
+            this.name = name;
+        }
+    }
+
+    public static class SidebarLayer {
+        public int start, end;
+        private final Paint paint;
+        public String color;
+
+        public SidebarLayer(String color, int start, int end) {
+            this.color = color;
+            this.start = start;
+            this.end = end;
+
+            paint = new Paint();
+            paint.setAntiAlias(true);
+            paint.setDither(true);
+            paint.setColor(Color.parseColor(color));
+
+        }
     }
 }
