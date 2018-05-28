@@ -1,7 +1,6 @@
 package com.github.adizbek.steplinesview;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -28,7 +27,6 @@ public class SteplinesView extends View {
 
     private ArrayList<Item> items = new ArrayList<>();
     private ArrayList<SidebarLayer> sideLayers = new ArrayList<>();
-    private Paint mSidePaint2;
 
     private boolean hasLabels = false;
     private int mLabelOffsetX;
@@ -62,10 +60,7 @@ public class SteplinesView extends View {
         startY = convertDpToPx(20);
         y = startY;
 
-        if (hasLabels) {
-            mLabelOffsetX = convertDpToPx(80);
-            x += mLabelOffsetX;
-        }
+        updateLabelOffset();
 
         mPaint = new Paint();
         mPaint.setAntiAlias(true);
@@ -78,26 +73,29 @@ public class SteplinesView extends View {
         mSidePaint.setDither(true);
         mSidePaint.setColor(Color.parseColor("#AAAAAA"));
 
-        mSidePaint2 = new Paint();
-        mSidePaint2.setAntiAlias(true);
-        mSidePaint2.setDither(true);
-        mSidePaint2.setColor(Color.parseColor("#9B51E0"));
-
         mSidePoint = new Paint();
         mSidePoint.setAntiAlias(true);
         mSidePoint.setDither(true);
         mSidePoint.setColor(Color.parseColor("#FFFFFF"));
 
         if (isInEditMode()) {
-            items.add(new Item("A"));
-            items.add(new Item("B"));
-            items.add(new Item("C"));
-            items.add(new Item("D"));
-            items.add(new Item("E"));
-            items.add(new Item("F"));
+            items.add(new Item("A", "25"));
+            items.add(new Item("B", "30"));
+            items.add(new Item("C", "35"));
+            items.add(new Item("D", "40"));
+            items.add(new Item("E", "45"));
+            items.add(new Item("F", "50"));
+
+            hasLabel(true);
+
+            setMinimumHeight(startY + items.size() * mOffsetY);
         }
 
         init = true;
+    }
+
+    private void updateLabelOffset() {
+        mLabelOffsetX = hasLabels ? convertDpToPx(80) : 0;
     }
 
     @Override
@@ -123,12 +121,14 @@ public class SteplinesView extends View {
         int width = mRadius + convertDpToPx(10);
         int f = convertDpToPx(5);
         int radius = width - f;
+
         int startY = convertDpToPx(20) + (start - 1) * mOffsetY;
         int endY = convertDpToPx(20) + (end - 1) * mOffsetY;
+        int startX = hasLabels ? x + mLabelOffsetX : x;
 
-        canvas.drawCircle(x, startY, radius, paint);
-        canvas.drawCircle(x, endY, radius, paint);
-        canvas.drawRect(new Rect(x - width + f, startY, x + width - f, endY), paint);
+        canvas.drawCircle(startX, startY, radius, paint);
+        canvas.drawCircle(startX, endY, radius, paint);
+        canvas.drawRect(new Rect(startX - width + f, startY, startX + width - f, endY), paint);
     }
 
     private void drawSideLine(Canvas canvas) {
@@ -136,17 +136,21 @@ public class SteplinesView extends View {
     }
 
     private void drawRegion(Canvas canvas, Item item) {
-        canvas.drawCircle(x, y, mRadius, mSidePoint);
-        canvas.drawText(item.name, x + mTextOffsetX, y + mTextPadding, mPaint);
+        int startX = hasLabels ? x + mLabelOffsetX : x;
+
+        canvas.drawCircle(startX, y, mRadius, mSidePoint);
+        canvas.drawText(item.name, startX + mTextOffsetX, y + mTextPadding, mPaint);
 
         if (hasLabels && item.label != null)
-            canvas.drawText(item.label, x - mLabelOffsetX, y + mTextPadding, mPaint);
+            canvas.drawText(item.label, startX - mLabelOffsetX, y + mTextPadding, mPaint);
 
         y += mOffsetY;
     }
 
     public void hasLabel(boolean has) {
         hasLabels = has;
+
+        updateLabelOffset();
     }
 
     private int convertDpToPx(int dp) {
@@ -165,9 +169,9 @@ public class SteplinesView extends View {
     public static class Item {
         public String label, name;
 
-        public Item(String label, String name) {
-            this.label = label;
+        public Item(String name, String label) {
             this.name = name;
+            this.label = label;
         }
 
         public Item(String name) {
